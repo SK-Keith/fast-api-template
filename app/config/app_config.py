@@ -3,7 +3,7 @@
 """
 @Project ：fast-api-template
 @File    ：app_config.py
-@Author  ：Mr.LiuQHui
+@Author  ：Keith007
 @Date    ：2023/12/15 4:41 PM
 """
 from pydantic import RedisDsn
@@ -24,7 +24,7 @@ class AppConfigSettings(BaseSettings):
     jwt_secret_key: str = "12345789@98765431"
     jwt_algorithm: str = "HS256"
     jwt_expired: int = 30
-    jwt_iss: str = "猿码记"
+    jwt_iss: str = "Keith007"
     jwt_no_check_uris: str = ""
     """数据库配置"""
     db_dsn: str = ""  # mysql+pymysql://username:password@localhost:3306/database_name

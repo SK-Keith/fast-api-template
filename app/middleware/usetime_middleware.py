@@ -3,7 +3,7 @@
 """
 @Project ：fast-api-template
 @File    ：usetime_middleware.py
-@Author  ：Mr.LiuQHui
+@Author  ：Keith007
 @Date    ：2023/12/12 7:25 PM
 """
 import time
@@ -11,6 +11,7 @@ import time
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
+from app.utils.log import logger
 
 
 class UseTimeMiddleware(BaseHTTPMiddleware):
@@ -20,6 +21,8 @@ class UseTimeMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
 
     async def dispatch(self, request: Request, call_next) -> Response:
+        client_ip = request.client.host
+        logger.info(f"Client IP: {client_ip}")
         """ 请求耗时 """
         start_time = time.time()
         print("调用-中间件-UseTimeMiddleware---before")

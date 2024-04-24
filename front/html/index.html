@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件上传</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 80%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        th:first-child {
+            min-width: 100px; /* 分页数最小宽度 */
+        }
+
+        th:nth-child(2) {
+            min-width: 500px; /* 状态次之宽度 */
+        }
+
+        th:last-child {
+            max-width: 150px; /* 值最大宽度 */
+            width: 50%; /* 值宽度的一半 */
+        }
+
+        button {
+            padding: 10px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>文件上传</h1>
+    <input type="file" id="fileInput">
+    <button onclick="uploadFile()">上传文件</button>
+    <button onclick="refreshStatus()">刷新状态</button>
+    <table id="dataTable">
+        <thead>
+        <tr>
+            <th>分页数</th>
+            <th>值</th>
+            <th>状态</th>
+        </tr>
+        </thead>
+        <tbody id="dataBody"></tbody>
+    </table>
+</div>
+
+<script>
+
+    async function refreshStatus() {
+        try {
+            const containerIP = await getContainerIP();
+            if (!containerIP) {
+                alert('无法获取容器IP地址');
+                return;
+            }
+
+            const rows = document.querySelectorAll('#dataTable tbody tr');
+            const keywords = [];
+            rows.forEach(row => {
+                const keywordCell = row.querySelectorAll('td')[1];
+                keywords.push(keywordCell.textContent);
+            });
+
+            const response = await fetch(`http://${containerIP}:36100/param/file/status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({keywords: keywords})
+            });
+            const result = await response.json();
+            if (result.code === 200) {
+                result.data.forEach((status, index) => {
+                    const row = rows[index];
+                    const statusCell = row.querySelectorAll('td')[2];
+                    statusCell.textContent = status.status === 1 ? '已爬取' : '爬取中';  // 注意这里的判断
+                });
+            } else {
+                alert(result.msg || '刷新状态失败');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('刷新状态失败');
+        }
+    }
+
+    async function getContainerIP() {
+        try {
+            console.log('开始获取ip');
+            const currentURL = window.location.href;
+            let hostname = new URL(currentURL).hostname;
+            // const response = await fetch(`http://${hostname}:36100/param/container/ip`);
+            // const data = await response.json();
+            if (hostname === "localhost") {
+                hostname = "127.0.0.1";
+            }
+            return hostname;
+        } catch (error) {
+            console.error('Error:', error);
+            return null;
+        }
+    }
+
+
+    async function uploadFile() {
+        // 清空表格内容
+        document.getElementById('dataBody').innerHTML = '';
+
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        if (!file) {
+            alert('请选择要上传的文件');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            console.log('开始获取ip')
+            const containerIP = await getContainerIP();
+            if (!containerIP) {
+                alert('无法获取容器IP地址');
+                return;
+            }
+
+            const response = await fetch(`http://${containerIP}:36100/param/upload/fileAndDownload`, {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.code === 200) {
+                // 填充表格数据
+                const dataBody = document.getElementById('dataBody');
+                result.data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    row.forEach((cell, index) => {
+                        const td = document.createElement('td');
+                        console.log('初始化index', index)
+                        // 初始化状态为0（爬取中）
+                        if (index === 2) {
+                            console.log('初始化状态为0（爬取中）')
+                            td.textContent = "爬取中";
+                        } else if (index === 1) {  // 如果是第二列（即超链接列）
+                            const a = document.createElement('a');
+                            a.href = `http://${containerIP}:36100/param/file/download?keyword=${encodeURIComponent(cell)}`;
+                            a.textContent = cell;
+                            a.target = "_blank"; // 在新标签页中打开链接
+                            a.addEventListener('click', event => {
+                                // 阻止默认行为，避免直接跳转
+                                event.preventDefault();
+                                // 执行点击事件后的自定义操作
+                                window.open(a.href, '_blank');
+                            });
+                            td.appendChild(a);
+                        } else {
+                            td.textContent = cell;
+                        }
+                        tr.appendChild(td);
+                    });
+                    dataBody.appendChild(tr);
+                });
+            } else {
+                alert(result.msg || '处理失败');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('文件上传失败');
+        }
+    }
+</script>
+</body>
+</html>

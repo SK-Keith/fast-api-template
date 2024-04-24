@@ -3,7 +3,7 @@
 """
 @Project ：fast-api-template
 @File    ：http_error.py
-@Author  ：Mr.LiuQHui
+@Author  ：Keith007
 @Date    ：2023/12/7 7:49 PM
 """
 from fastapi import status

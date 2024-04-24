@@ -1,0 +1,177 @@
+{
+	"info": {
+		"_postman_id": "be24f972-5e32-4917-b69a-433c996e6d41",
+		"name": "New Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31990100"
+	},
+	"item": [
+		{
+			"name": "爬取前台",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// 设置请求的选项\r",
+							"let opts = {\r",
+							"    requestName: request.name || request.url,\r",
+							"    requestUrl: request.url,\r",
+							"    fileExtension: 'html',\r",
+							"    mode: 'writeFile', // Change this to any function of the fs library of node to use it.\r",
+							"    uniqueIdentifier: true,\r",
+							"    requestData:pm.request.body.raw  || request.url,\r",
+							"    responseData: pm.response.text()\r",
+							"};\r",
+							"\r",
+							"setTimeout(() => {\r",
+							"    pm.sendRequest({\r",
+							"        url: 'http://localhost:3000/write4',\r",
+							"        method: 'POST',\r",
+							"        header: 'Content-Type:application/json',\r",
+							"        body: {\r",
+							"            mode: 'raw',\r",
+							"            raw: JSON.stringify(opts)\r",
+							"        }\r",
+							"    }, function (err, res) {\r",
+							"        console.log(res);\r",
+							"    });\r",
+							"}, 5000);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "authority",
+						"value": "www.amazon.com"
+					},
+					{
+						"key": "cache-control",
+						"value": "max-age=0"
+					},
+					{
+						"key": "device-memory",
+						"value": "8"
+					},
+					{
+						"key": "sec-ch-device-memory",
+						"value": "8"
+					},
+					{
+						"key": "dpr",
+						"value": "1.5"
+					},
+					{
+						"key": "sec-ch-dpr",
+						"value": "1.5"
+					},
+					{
+						"key": "viewport-width",
+						"value": "1138"
+					},
+					{
+						"key": "sec-ch-viewport-width",
+						"value": "1138"
+					},
+					{
+						"key": "rtt",
+						"value": "450"
+					},
+					{
+						"key": "downlink",
+						"value": "1.45"
+					},
+					{
+						"key": "ect",
+						"value": "3g"
+					},
+					{
+						"key": "sec-ch-ua",
+						"value": "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"98\", \"Google Chrome\";v=\"98\""
+					},
+					{
+						"key": "sec-ch-ua-mobile",
+						"value": "?0"
+					},
+					{
+						"key": "sec-ch-ua-platform",
+						"value": "\"Windows\""
+					},
+					{
+						"key": "sec-ch-ua-platform-version",
+						"value": "\"10.0.0\""
+					},
+					{
+						"key": "upgrade-insecure-requests",
+						"value": "1"
+					},
+					{
+						"key": "user-agent",
+						"value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36"
+					},
+					{
+						"key": "accept",
+						"value": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
+					},
+					{
+						"key": "sec-fetch-site",
+						"value": "same-origin"
+					},
+					{
+						"key": "sec-fetch-mode",
+						"value": "navigate"
+					},
+					{
+						"key": "sec-fetch-user",
+						"value": "?1"
+					},
+					{
+						"key": "sec-fetch-dest",
+						"value": "document"
+					},
+					{
+						"key": "referer",
+						"value": "https://www.amazon.com/Hisencn-Flavorizer-Spirit-Control-Porcelain-Enameled/dp/B0B4KB777P/ref=sr_1_1?dib=eyJ2IjoiMSJ9.ruVJd0rRbZUD1XysiR6tRbHs0DO1ONiJ9n5PUxI6AdoMCcueYue7jW-Uk8pJXPFXs-AxwB4yuuhB2WLXYXovWtAUKxqm0aXvpiqwUv4WRJmzJmtdBt-N66FBbol8gZqQ60E97o-OD3yc-NvvbLCX6Rw_rcolQZU0wEiYodd6cGsvVlrIC8nhVDFWPunZWQzeUM7L2XuTX9vXcm74rpneg3mfi7cXInf_x3NZX9VMmuY.9oHx2Sc2QhYIG1u5H0r9Yx9QP2r4yG0rCCEszUNksE4&dib_tag=se&keywords=weber%2B7636&qid=1709454179&sr=8-1-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&psc=1"
+					},
+					{
+						"key": "accept-language",
+						"value": "zh-CN,zh;q=0.9,en;q=0.8"
+					},
+					{
+						"key": "cookie",
+						"value": "session-id=144-2116471-9301569; i18n-prefs=USD; ubid-main=135-7794823-0885261; lc-main=en_US; s_pers=%20s_fid%3D3F3825EBD197A51A-172FD1E9B1341102%7C1821019037389%3B%20s_dl%3D1%7C1663254437390%3B%20gpv_page%3DV3%2520BRND%2520US%2520Gateway%7C1663254437392%3B%20s_ev15%3D%255B%255B%2527ASXXABRDirect%2527%252C%25271663252637397%2527%255D%255D%7C1821019037397%3B; s_nr=1675172732704-New; s_vnum=2107172732705%26vn%3D1; s_dslv=1675172732706; x-main=\"v@egp5iT?gDEtZYJAdhwBb8YAgfV6FM4salMXfLb6KUnKBjqDwO1Cyr2kfy5sdAH\"; at-main=Atza|IwEBIDKyCn2fPST7K5JO6a4IhJnM_Bb1AUUGrUt9OqjItbWAruRlirgcCRZ2T08k1rxS3K7dvyOqCLQ-i1cZFn0ys3GjRpVoTOzlt62a6BhizdJVp2QHdzOkN7_ki0EjkKCtyJhFwoJQ_-61Q_yBf0sHdty5-S55ioj2TFaxBaqa3NkkDTN33t7caX79XtJD3Y1y4ozeqJhYBLFBBVdoE80HC5M-YVPdqmkvz7yC8dPz664mAQ; sess-at-main=\"xBo/1Qk26V2pfnn8kag8dNFY7EwFKRzbZeG//SpRSbM=\"; sst-main=Sst1|PQHdNy6GQz03XVkQ3QrgV0f6CZTxyEMBTURLPDRetomSK3NumQbYDNGn-_pLBaYedhbqKYZn5aVxuDfSEUQX-j41Y4bUz0Ah5JToNmzdBSkbITwOy-7fGUFAsuY3wO4bhDA8P0wZ7kAPvwU020X1D6SIT5g42AmKMFVc8OKcdnKakSuckaGNQS-KRGkBPEK_aMc7yI5AfV_VaSCY8msYJfwngP-_avQMLdHte-kG7HYQv-r8yNrFCH_ydYb5RB6_1uLLJpQ6ChnTWera3JcriwzAJOzVeLWwwBEhtMn7E2wQq9E; _bl_uid=mUl6ypd9fbvn5ji6z0z8rv6chyXs; b-user-id=9c76616a-5ca9-849d-a251-c7d85baf25ad; s_fid=3B8902E527FB5812-245AAD8CED33D2AA; _rails-root_session=Vkg4ZkV4ajFrRE9JNEdPajU0STR0b2tDVVZVSUpPUlNyRW5DQjBxNmMwMFE5SlRxZEoydFRicUZqVitSLytud29OTW1GU2RIUHRTQmdqeEZVVjllNDEyQWYxQWxyOFl3Tmc1ekx3RzFwbnBFQURJWVRjTXZFNFdjMFZNSjI2TlpHN2VKMmYxSU84c3B0WjJVYitqWFQ1NlVvaEtFTG9uTXRxQWtzblZsQTh3QjVxTGdTaXJSYWpDVisrYkpVeWliLS1UQk0xR0I4UkFjZGZ2UGVrZlRlVDF3PT0%3D--52f5c36aedd3c4391e4515581297e2e46a531a24; s_cc=true; session-id-time=2082787201l; session-token=VToLZSwqn6Jctf6q8JccITdBxbEYtv6Gpan9vsePCvQ2RDoQ+IvQ+zHc5CaEFNsYlynXr+KtZGR2HNklvn/1U1Zu2L7L/Y5FBf9kqcHw9WSzYpT4SDcjkpXUsa2h8pQ3qxv1fmUkK7uDQAqotdYMVOF3X53z12hkVZ8qvKiDW4fXtYV71EhLJueFL+rCImDfcrM8d8483BWsfOiUm7V+yrznQ9XvTBgq5pUCsa3KeisOJXq+vYkjfWfEcTzVmT9ZpSt5v5tvU4jmtzoKx87iyxnx6JXL6y1HotbZblk3368soTras90N587xldm+gWbNunvcDxSjR9eaXTyrfN2X4kUbl4mx9k0lEiI9Q4iiZ0ghTBGMxKfcnCTVkiaqbKbP; csm-hit=tb:SECSXPD8X3F8R92QM8BV+b-ZPS7FYTZWMY9W99G77RK|1709468355175&t:1709468355176&adb:adblk_no"
+					}
+				],
+				"url": {
+					"raw": "https://www.amazon.com/s?k={{search}}&page={{page}}",
+					"protocol": "https",
+					"host": [
+						"www",
+						"amazon",
+						"com"
+					],
+					"path": [
+						"s"
+					],
+					"query": [
+						{
+							"key": "k",
+							"value": "{{search}}"
+						},
+						{
+							"key": "page",
+							"value": "{{page}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

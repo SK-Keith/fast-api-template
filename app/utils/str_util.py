@@ -3,7 +3,7 @@
 """
 @Project ：fast-api-template
 @File    ：StrUtil.py
-@Author  ：Mr.LiuQHui
+@Author  ：Keith007
 @Date    ：2023/11/13 18:16 
 """
 import hashlib

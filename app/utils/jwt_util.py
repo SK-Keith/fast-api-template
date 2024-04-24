@@ -3,11 +3,12 @@
 """
 @Project ：fast-api-template
 @File    ：jwt_util.py
-@Author  ：Mr.LiuQHui
+@Author  ：Keith007
 @Date    ：2023/12/14 12:06 PM
 """
 from datetime import datetime, timedelta
 from typing import Any
+from typing import Union
 
 import jwt
 from pydantic import BaseModel
@@ -36,7 +37,7 @@ class JwtManageUtil(object):
     """
 
     def __init__(self, secretKey: str, algorithm: str = "HS256", expired: int = 60,
-                 chinaTimeZone=constant.ChinaTimeZone, iss: str = "猿码记"):
+                 chinaTimeZone=constant.ChinaTimeZone, iss: str = "Keith007"):
         """
         初始化
         :param secretKey: 秘钥
@@ -67,7 +68,7 @@ class JwtManageUtil(object):
         # 生成 JWT
         return jwt.encode(jwtData.dict(), self.secretKey, algorithm=self.algorithm)
 
-    def decode(self, jwtToken: str, decodePydanticModel: Any) -> BaseModel | str:
+    def decode(self, jwtToken: str, decodePydanticModel: Any) -> Union[BaseModel, bool]:
         """
         解析 jwtToken
         :param jwtToken: str

@@ -3,7 +3,7 @@
 """
 @Project ：fast-api-template
 @File    ：validate_template_config.py
-@Author  ：Mr.LiuQHui
+@Author  ：Keith007
 @Date    ：2023/12/8 4:34 PM
 """
 

@@ -3,7 +3,7 @@
 """
 @Project ：fast-api-template
 @File    ：app_error.py
-@Author  ：Mr.LiuQHui
+@Author  ：Keith007
 @Date    ：2023/12/8 10:29 PM
 """
 import traceback

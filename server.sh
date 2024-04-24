@@ -5,7 +5,7 @@ APP_FILE="main.py"
 TMP_PATH="./tmp"
 
 # 可以写本地具体路径 如:/usr/bin/python
-PYTHON_BIN="python"
+PYTHON_BIN="python3"
 
 # 默认参数
 DEFAULT_UVICORN_OPTS=""

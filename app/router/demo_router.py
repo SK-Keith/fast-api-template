@@ -3,7 +3,7 @@
 """
 @Project ：fast-api-template
 @File    ：open.py
-@Author  ：Mr.LiuQHui
+@Author  ：Keith007
 @Date    ：2023/11/13 17:45
 """
 import json

@@ -3,7 +3,7 @@
 """
 @Project ：fast-api-template
 @File    ：jwtdata.py
-@Author  ：Mr.LiuQHui
+@Author  ：Keith007
 @Date    ：2023/12/14 6:05 PM
 """
 from pydantic import BaseModel, Field

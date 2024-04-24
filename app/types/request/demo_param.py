@@ -3,12 +3,13 @@
 """
 @Project ：fast-api-template 
 @File    ：demo_param.py
-@Author  ：Mr.LiuQHui
+@Author  ：Keith007
 @Date    ：2023/11/16 17:38 
 """
 
 from enum import Enum
 from typing import Union, Optional, List, Dict
+from pydantic import BaseModel, Field
 
 # 导入pydantic对应的模型基类
 from pydantic import BaseModel, constr, EmailStr, conint, Field, field_validator
@@ -19,7 +20,7 @@ class DemoParam(BaseModel):
     请求体参数对应的模型
     """
 
-    user_name: str | None = Field(default=None, title="用户姓名")
+    user_name: Union[str, None] = Field(default=None, title="用户姓名")
     age: int
     city: Union[str, None]
 

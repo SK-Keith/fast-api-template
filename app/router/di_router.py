@@ -3,7 +3,7 @@
 """
 @Project ：fast-api-template
 @File    ：di_router.py
-@Author  ：Mr.LiuQHui
+@Author  ：Keith007
 @Date    ：2024/3/25 22:01
 """
 from fastapi import APIRouter, Depends
