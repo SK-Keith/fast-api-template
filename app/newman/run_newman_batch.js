@@ -1,13 +1,13 @@
-const newman = require('D:\\BaiduNetdiskDownload\\newman\\node_modules\\newman');
+const newman = require('/usr/local/lib/node_modules/newman');
 const fs = require('fs');
 const path = require('path');
-const async = require('D:\\BaiduNetdiskDownload\\newman\\node_modules\\async');
+const async = require('/usr/local/lib/node_modules/async');
 
 // 获取传递的参数  node .\run_newman_batch.js B081ZYPXXL,B07CSYNDF5,B09MLNYYMG
 const args = process.argv.slice(2); // 去除前两个参数（执行路径和脚本路径）
 
 // 默认的并发限制
-let concurrencyLimit = 3;
+let concurrencyLimit = 1;
 
 // 检查是否提供了并发限制参数
 if (args.length > 1) {
