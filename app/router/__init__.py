@@ -11,7 +11,8 @@ from app.router import (
     default_router,
     demo_router,
     di_router,
-    param_router
+    param_router,
+    brand_router
 )
 
 # 定义路由列表
@@ -19,5 +20,6 @@ RegisterRouterList = [
     default_router,
     demo_router,
     di_router,
-    param_router
+    param_router,
+    brand_router
 ]

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>解析yhq</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 80%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        th:first-child {
+            min-width: 100px; /* 分页数最小宽度 */
+        }
+
+        th:nth-child(2) {
+            min-width: 500px; /* 状态次之宽度 */
+        }
+
+        th:last-child {
+            max-width: 150px; /* 值最大宽度 */
+            width: 50%; /* 值宽度的一半 */
+        }
+
+        button {
+            padding: 10px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="fileInput" name="file">
+        <button type="submit">Upload File</button>
+    </form>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const formData = new FormData();
+            const fileInput = document.getElementById('fileInput');
+            formData.append('file', fileInput.files[0]);
+
+<!--            const containerIP = '127.0.0.1'; // Replace with your server IP or domain-->
+            const containerIP = await getContainerIP();
+            if (!containerIP) {
+                alert('无法获取容器IP地址');
+                return;
+            }
+            const response = await fetch(`http://${containerIP}:36100/param/explian/fileAndDownload`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorMessage = await response.text();
+                console.error('File upload failed:', errorMessage);
+                return;
+            }
+
+            // If successful, initiate download of the returned file
+            const blob = await response.blob();
+            const filename = 'yhq结果';
+            const downloadLink = document.createElement('a');
+            downloadLink.href = window.URL.createObjectURL(blob);
+            downloadLink.download = filename;
+            downloadLink.click();
+        });
+
+        async function getContainerIP() {
+        try {
+            console.log('开始获取ip');
+            const currentURL = window.location.href;
+            let hostname = new URL(currentURL).hostname;
+            // const response = await fetch(`http://${hostname}:36100/param/container/ip`);
+            // const data = await response.json();
+            if (hostname === "localhost") {
+                hostname = "127.0.0.1";
+            }
+            return hostname;
+        } catch (error) {
+            console.error('Error:', error);
+            return null;
+        }
+    }
+    </script>
+</body>
+</html>

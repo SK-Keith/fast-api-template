@@ -29,6 +29,8 @@ def registerMiddlewareHandle(server: FastAPI):
     # jwt未开启则不注册
     if globalAppSettings.jwt_enable is False:
         middlewareList.remove(JwtMiddleware)
+    if globalAppSettings.token_enable is False:
+        middlewareList.remove(TokenMiddleware)
 
     # 倒序中间件
     middlewareList.reverse()

@@ -33,3 +33,5 @@ class AppConfigSettings(BaseSettings):
     db_max_overflow: int = 10  # 连接池中允许的最大超出连接数
     """redis配置"""
     redis_dsn: RedisDsn = None
+    token_enable: bool = True
+    middle_enable: bool = True

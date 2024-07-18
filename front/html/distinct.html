@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>去重示例</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 400px;
+        }
+
+         #inputArea {
+            width: 100%;
+            height: 15rem;
+            resize: vertical; /* 允许用户调整输入框的高度 */
+            padding: 10px;
+            box-sizing: border-box;
+            font-size: 1.2rem;
+        }
+
+        #uniqueButton, #copyButton {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            font-size: 1.2rem;
+        }
+
+        #output {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        .output-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+
+        .output-item input {
+            margin-right: 10px;
+        }
+
+        .output-item span {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <textarea id="inputArea" placeholder="输入多行内容（每行用逗号或换行符分隔）"></textarea>
+        <button id="uniqueButton">去重</button>
+        <div id="output"></div>
+        <button id="copyButton">复制选中内容</button>
+        <p id="itemCount"></p> <!-- 添加显示项数的<p>标签 -->
+    </div>
+
+    <script>
+        document.getElementById('uniqueButton').addEventListener('click', () => {
+            const input = document.getElementById('inputArea').value;
+            let items = input.split(/[\n,]+/g);
+            items = items.map(item => item.trim()).filter(Boolean);
+            const uniqueItems = [...new Set(items)];
+            
+            const outputDiv = document.getElementById('output');
+            outputDiv.innerHTML = '';
+            
+            uniqueItems.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'output-item';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `item${index}`;
+                checkbox.value = item;
+                
+                const label = document.createElement('label');
+                label.htmlFor = `item${index}`;
+                label.textContent = item;
+                
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                
+                outputDiv.appendChild(div);
+            });
+
+            document.getElementById('itemCount').textContent = `共有 ${uniqueItems.length} 项`;
+        });
+
+        document.getElementById('copyButton').addEventListener('click', () => {
+            const checkedItems = Array.from(document.querySelectorAll('#output input:checked')).map(input => input.value);
+            const textToCopy = checkedItems.join('\n');
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert('选中的内容已复制到剪贴板');
+            }).catch(err => {
+                alert('复制失败: ' + err);
+            });
+        });
+    </script>
+</body>
+</html>
