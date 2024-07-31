@@ -7,9 +7,36 @@
 @Date    ：2023/11/13 18:45 
 """
 from fastapi import APIRouter, Depends
+from app.types import request
 import requests
+import uvicorn
+import json
+import time
+import os
 
 router = APIRouter(prefix="/router", tags=["远程"])
+
+# 路由装饰器，处理 POST 请求
+@router.post("/save")
+async def post_data(item: request.Item):  # 使用 Pydantic 模型自动解析请求体
+    # 打印接收到的数据
+    print('Received POST data:', item.data)
+
+    # 保存数据到本地文件
+    # 使用当前时间戳创建文件名
+    timestamp = int(time.time())
+    file_name = f"res-{timestamp}.json"
+    with open(file_name, 'w', encoding='utf-8') as f:
+        # 因为 data 是字符串，我们可能需要先将其转换为字典，如果是JSON字符串的话
+        try:
+            data_dict = json.loads(item.data)
+        except json.JSONDecodeError:
+            data_dict = {"data": item.data}  # 如果不是有效的 JSON 字符串，则直接保存
+
+        json.dump(data_dict, f)
+
+    # 返回成功响应
+    return {"code": 200, "message": "Received data successfully"}
 
 
 @router.get("/brand")
