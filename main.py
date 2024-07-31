@@ -15,6 +15,11 @@ from app.config import globalAppSettings
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
 
+import requests
+from openpyxl import Workbook
+from openpyxl.drawing.image import Image
+from io import BytesIO
+
 
 if __name__ == "__main__":
     print("打印项目配置:", globalAppSettings)
@@ -33,5 +38,28 @@ if __name__ == "__main__":
     # 使用 python main.py 启动服务
     # uvicorn.run(app='main:app', host="0.0.0.0", port=36100, reload=True)
     uvicorn.run(server, host=globalAppSettings.app_host, port=globalAppSettings.app_port)
+
+    # # 创建一个工作簿对象
+    # wb = Workbook()
+    #
+    # # 激活默认的工作表
+    # ws = wb.active
+    #
+    # # 图片地址
+    # image_url = "https://pic.52112.com/2019/06/06/JPS-190606_155/24poJOgl7m_small.jpg"
+    #
+    # try:
+    #     # 尝试下载图片
+    #     response = requests.get(image_url, verify=False)  # 禁用 SSL 验证
+    #     img = Image(BytesIO(response.content))
+    #
+    #     # 将图片插入到单元格 B2 中
+    #     ws.add_image(img, 'B2')
+    #
+    #     # 保存工作簿
+    #     wb.save('example.xlsx')
+    # except Exception as e:
+    #     print("Error:", e)
+
 
 

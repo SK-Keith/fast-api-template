@@ -19,7 +19,7 @@ console.log('传递的参数：', args);
 console.log('并发限制：', concurrencyLimit);
 
 // 构建 iterationData 参数
-const iterationData = args[0].split(',').map(id => ({ id }));
+const iterationData = args[0].split(',').map(id => ({id}));
 
 // 记录开始时间
 const startTime = Date.now();
@@ -40,13 +40,24 @@ async.mapLimit(iterationData, concurrencyLimit, (data, callback) => {
             const responseBody = args.response.stream.toString('utf8');
             console.log('提取的响应数据:-------------');
             // console.log(responseBody);
+            const currentDate = new Date();
+            const year = currentDate.getFullYear();
+            // 月份从0开始，所以要加1
+            const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+            const day = currentDate.getDate().toString().padStart(2, '0');
+            const hours = currentDate.getHours().toString().padStart(2, '0');
+            const minutes = currentDate.getMinutes().toString().padStart(2, '0');
+            const seconds = currentDate.getSeconds().toString().padStart(2, '0');
 
             // 获取当前时间戳
-            const timestamp = Date.now();
+            // const timestamp = Date.now();
             // 将参数值包含在文件名中
             const folderName = 'tmp'
+            // const filePath = path.join(`./${folderName}`, `${singleIterationData[0].id}_${timestamp}.html`);
+            // const filePath = path.join('D:\\BaiduNetdiskDownload\\newman', `${singleIterationData[0].id}_${timestamp}.html`);
+            // 使用年月日时分秒构建时间戳
+            const timestamp = `${year}${month}${day}_${hours}${minutes}${seconds}`;
             const filePath = path.join(`./${folderName}`, `${singleIterationData[0].id}_${timestamp}.html`);
-			// const filePath = path.join('D:\\BaiduNetdiskDownload\\newman', `${singleIterationData[0].id}_${timestamp}.html`);
             // 写入文件
             fs.writeFile(filePath, responseBody, (err) => {
                 if (err) {

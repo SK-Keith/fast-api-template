@@ -22,6 +22,11 @@ import json
 import subprocess
 import time
 import concurrent.futures
+import shutil
+import pandas as pd
+import re
+from datetime import datetime
+
 
 
 router = APIRouter(prefix="/param", tags=["更多参数接收示例"])
@@ -155,6 +160,123 @@ async def uploadFile(file: UploadFile = File(...)) -> response.HttpResponse:
         print("上传文件时出现异常:", e)
         # raise HTTPException(status_code=500, detail=f"文件上传失败: {str(e)}")
 
+@router.post("/explian/fileAndDownload")
+async def uploadFile(file: UploadFile = File(...)) -> FileResponse:
+    """ 文件上传并解析 """
+    print('开始上传')
+    try:
+        # 提取文件类型
+        file_extension = file.filename.split(".")[-1]
+        if file_extension != "txt":
+            raise HTTPException(status_code=400, detail=f"只允许上传 txt 类型的文件")
+
+        # 保存文件到本地
+        file_path = await save_uploaded_file(file)
+
+        with open(file_path, 'r', encoding='utf-8') as file:
+            lines = file.readlines()
+
+        # Initialize lists to store data
+        asins = []
+        origin_prices = []
+        titles = []
+        start_times = []
+        end_times = []
+        coupon_types = []
+        coupon_amounts = []
+        coupon_descs = []
+
+        # Initialize variables for parsing
+        current_asin = None
+        current_original_price = None
+
+        # Parse lines and extract data
+        for line in lines:
+            line = line.strip()
+            if not line or "查询结果" in line or "只显示" in line or "内部描述" in line or "SKU" in line:  # Skip irrelevant lines
+                continue
+
+            if "ASIN" in line:
+                asin_pattern = r'ASIN\s+([A-Z0-9]+)'
+                match = re.search(asin_pattern, line)
+                if match:
+                    current_asin = match.group(1)
+                    # Corrected to use square brackets
+
+            if "原价" in line:
+                original_price_pattern = r'原价\s+([A-Z0-9]+)'
+                match = re.search(original_price_pattern, line)
+                if match:
+                    current_original_price = match.group(1)
+                    # Corrected to use square brackets
+
+            if "Save" in line or "solo" in line or "会员专享" in line or "促销" in line or "奥莱" in line:
+                # Using regex to extract information
+                match = re.match(r'^(.*?)'  # Title
+                                 r'(\d{4}/\d{1,2}/\d{1,2} \d{2}:\d{2}:\d{2})'  # Start time
+                                 r'(\d{4}/\d{1,2}/\d{1,2} \d{2}:\d{2}:\d{2})'  # End time
+                                 r'(.*?)'  # Coupon type
+                                 r'(\d+%?)'  # Coupon amount/discount
+                                 r'(.*?)$',  # Coupon description
+                                 line)
+                if "促销-" in line:
+                    match = re.match(r'^(.*?)'  # Title
+                                 r'(\d{4}/\d{1,2}/\d{1,2} \d{2}:\d{2}:\d{2})'  # Start time
+                                 r'(\d{4}/\d{1,2}/\d{1,2} \d{2}:\d{2}:\d{2})'  # End time
+                                 r'(\d+天)'  # Coupon type
+                                 r'(\d+\.?\d*\$?)'  # Coupon amount/discount
+                                 r'(.*?)$',  # Coupon description
+                                 line)
+                if "奥莱" in line:
+                    match = re.match(r'^(.*?)'  # Title
+                                     r'(\d{4}/\d{1,2}/\d{1,2} \d{2}:\d{2}:\d{2})'  # Start time
+                                     r'(\d{4}/\d{1,2}/\d{1,2} \d{2}:\d{2}:\d{2})'  # End time
+                                     r'(.*?)'  # Coupon type
+                                     r'(\d+\.\d{2}\$)' 
+                                     r'(.*?)$',  # Coupon description
+                                     line)
+                if match:
+                    title = match.group(1).strip()
+                    start_time = match.group(2)
+                    end_time = match.group(3)
+                    coupon_type = match.group(4)
+                    coupon_amount = match.group(5)
+                    coupon_desc = match.group(6).strip()
+
+                    # Append data to lists
+                    titles.append(title)
+                    start_times.append(start_time)
+                    end_times.append(end_time)
+                    coupon_types.append(coupon_type)
+                    coupon_amounts.append(coupon_amount)
+                    coupon_descs.append(coupon_desc)
+                    asins.append(current_asin)
+                    origin_prices.append(current_original_price)
+
+        # Create a DataFrame from the lists
+        df = pd.DataFrame({
+            'asin': asins,
+            'origin_price': origin_prices,
+            'title': titles,
+            'start_time': start_times,
+            'end_time': end_times,
+            'coupon_type': coupon_types,
+            'coupon_amount': coupon_amounts,
+            'coupon_desc': coupon_descs
+        })
+
+        # Get the current date and time
+        current_time = datetime.now().strftime("%Y%m%d%H%M%S")
+        filename = f"output_{current_time}.xlsx"
+
+        # Write DataFrame to Excel
+        df.to_excel(filename, index=False)
+
+        return FileResponse(filename, filename=f"output_{current_time}.xlsx")
+    except Exception as e:
+        print("上传文件时出现异常:", e)
+        # raise HTTPException(status_code=500, detail=f"文件上传失败: {str(e)}")
+
 
 # 保存上传文件到本地临时目录
 async def save_uploaded_file(file: UploadFile) -> str:
@@ -193,12 +315,14 @@ def parse_excel(file_path: str) -> list[list[str]]:
     data = []
     for row in sheet.iter_rows(min_row=2, min_col=1, values_only=True):
         page, keyword = row
+        # 如果page或keyword为None，则跳过当前迭代
+        if page is None or keyword is None:
+            continue
         # 将关键词中的空格替换为 "+"
         keyword = keyword.replace(" ", "+")
         data.append([page, keyword, 0])
 
     return data
-
 
 async def analyseData(data):
     print('analyseData:', data)
@@ -213,17 +337,17 @@ async def analyseData(data):
     for pair in data:
         concurrency_limit, keyword, index = pair
         data = await loop.run_in_executor(None, lambda: extract_data_from_html(directory, keyword))
-        print(f"analyseData concurrency_limit:：{concurrency_limit} keyword：{keyword} 秒")
+        print(f"analyseData concurrency_limit:：{concurrency_limit} keyword：{keyword} ")
         asins = set()
         for row in data[1:]:
             asin = row[0]
             if asin:
-                files = os.listdir(directory)
-                for file in files:
-                    if asin in file:
-                        break
-                else:
-                    asins.add(asin)
+                # files = os.listdir(directory)
+                # for file in files:
+                #     if asin in file:
+                #         break
+                # else:
+                asins.add(asin)
 
         asins_string = ','.join(asins)
         print("第二步：根据爬取出来的bought有数据的asin进行爬取二级页面")
@@ -253,7 +377,7 @@ async def analyseData(data):
 def extract_data_from_html(directory, keyword):
     data = [
         ["ASIN", "数量", "标题", "价格", "sponsored", "类目", "Material", "Brand", "Color", "Item Weight", "Product Dimensions",
-         "Country of Origin", "Customer Reviews", "Date First Available"]]
+         "Country of Origin", "Customer Reviews", "Date First Available", "最终价"]]
 
     for filename in os.listdir(directory):
         # 检查文件名是否以 .html 结尾，并且包含关键字
@@ -366,23 +490,35 @@ def parse_detail(asins):
     print('爬取二级完成！', asins)
 
 def process_data(data, directory):
-    # asins_to_process = set()  # 存储待处理的asin
-    # for row in data[1:]:
-    #     asin = row[0]
-    #     if asin and asin not in asins_to_process:
-    #         asins_to_process.add(asin)  # 将待处理的asin添加到集合中，以去重
-
+    # 存储每个 ASIN 对应的最新文件名
+    new_files = {}
+    files_param = []
     # 列出目录中的所有文件
     files = [filename for filename in os.listdir(directory) if filename.endswith('.html')]
 
+    # 遍历目录中的所有文件，确定每个 ASIN 对应的最新文件
+    for filename in files:
+        try:
+            asin = filename.split('_')[0]  # 获取文件名中的 ASIN
+            timestamp = int(filename.split('_')[1])  # 获取文件名中的时间戳
+            if asin not in new_files or timestamp > new_files[asin][1]:
+                new_files[asin] = (filename, timestamp)
+        except (ValueError, IndexError):
+            # 如果文件名不符合预期格式，则跳过
+            pass
+
+    # 将每个 ASIN 的最新文件名添加到 files_param 列表中
+    for asin, (filename, _) in new_files.items():
+        files_param.append(filename)
+
     # 循环处理每个待处理的 ASIN
-    parse_html_files_for_asins(directory, data, files)
+    parse_html_files_for_asins(directory, data, files_param)
 
 def parse_html_files_for_asins(directory, data, files):
     # 定义数据表头顺序
     data_headers = ["ASIN", "数量", "标题", "价格", "sponsored", "类目", "Material", "Brand", "Color", "Item Weight",
                     "Product Dimensions",
-                    "Country of Origin", "Customer Reviews", "Date First Available"]
+                    "Country of Origin", "Customer Reviews", "Date First Available", "最终价"]
     processed_files = set()  # 存储已处理过的文件名
     print('开始解析')
     start_time_step1 = time.time()
@@ -501,6 +637,25 @@ def parse_html_files_for_asins(directory, data, files):
 
                                         # 将结果添加到 row 中
                                         row[data_headers.index("Customer Reviews")] = customer_reviews_str
+                        # 提取促销价
+                        promotion_price_element_e = soup.find('a', id='pep-signup-link')
+                        if promotion_price_element_e:
+                            promotion_price_element = promotion_price_element_e.find_next('span',class_='a-size-base')
+                            if promotion_price_element:
+                                promotion_price = float(promotion_price_element.text.replace('$', ''))
+                                # 提取优惠折上折
+                                # 使用正则表达式查找金额
+                                match = re.search(r'\$(\d+(?:\.\d+)?)\s+coupon applied to one item per order at checkout', html_content)
+                                discount_amount = None
+                                # 如果找到匹配项，则提取金额
+                                if match:
+                                    discount_amount = float(match.group(1))
+                                    print("优惠折扣金额:", discount_amount)
+
+                                    # 计算最终价格
+                                    final_price = promotion_price - discount_amount
+                                    # 将结果添加到 row 中
+                                    row[data_headers.index("最终价")] = final_price
                     # 标记文件已处理
                     processed_files.add(filename)
                     break  # 找到了文件就退出内层循环
@@ -534,6 +689,25 @@ def write_to_excel(data, output_file):
     # 保存文件
     wb.save(output_file)
 
+def move_html_files_with_keyword(keyword):
+    current_directory = os.path.join(os.getcwd(), 'tmp')
+    old_directory = os.path.join(current_directory, 'old')
+
+    # 创建 old 目录（如果不存在）
+    if not os.path.exists(old_directory):
+        os.makedirs(old_directory)
+
+    # 遍历当前目录下的所有文件
+    for filename in os.listdir(current_directory):
+        if filename.endswith('.html') and keyword in filename:
+            # 构建源文件路径和目标文件路径
+            source_path = os.path.join(current_directory, filename)
+            destination_path = os.path.join(old_directory, filename)
+
+            # 移动文件到 old 目录
+            shutil.move(source_path, destination_path)
+            print(f"已移动文件 '{filename}' 到 '{old_directory}' 目录")
+
 def parse_front(data):
     print('parse_front', data)
     # 打印数据
@@ -541,6 +715,8 @@ def parse_front(data):
         try:
             # 构建命令字符串
             concurrency_limit, keyword, index = pair
+            # 将当前目录中包含keyword关键词的文件移动到当前目录的old目录中
+            move_html_files_with_keyword(keyword)
             # 获取 run_newman_batch_pc.js 文件的绝对路径
             script_path = os.path.join(os.getcwd(), "app", "newman", "run_newman_batch_pc.js")
             print('script_path', script_path)
