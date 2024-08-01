@@ -32,9 +32,13 @@ async def post_data(item: request.Item):  # 使用 Pydantic 模型自动解析�
             data_dict = json.loads(item.data)
         except json.JSONDecodeError:
             data_dict = {"data": item.data}  # 如果不是有效的 JSON 字符串，则直接保存
-
+        try:
+            extracted_list = extract_data(data_dict)
+            print(extracted_list)
+        except:
+            print('extract_data fail')
+            pass
         json.dump(data_dict, f)
-
     # 返回成功响应
     return {"code": 200, "message": "Received data successfully"}
 
@@ -104,3 +108,50 @@ async def xxgk():
         }
         response = requests.get(url, headers=headers, timeout=10, verify=False)
         print(response)
+
+
+# 辅助函数，检查None值并将其转换为字符串形式
+def to_str(value):
+    return f'{value}' if value is not None else 'null'
+
+def to_left5(value):
+    try:
+        if value is not None:
+            # Convert value to float, if possible
+            numeric_value = float(value)
+            return numeric_value / 100000
+        else:
+            # Handle the case where value is None
+            return None
+    except ValueError:
+        # Handle the case where value cannot be converted to float
+        raise ValueError(f"Invalid input: {value}. Must be a number or convertible to float.")
+
+def extract_data(data_dict):
+
+    # with open(file_name, 'r', encoding='utf-8-sig') as file:
+    #     json_data = file.read()
+    # 解析JSON数据
+    # data = json.loads(json_data)
+
+    # 用于存储提取数据的列表
+    extracted_list = []
+
+    # 遍历数据中的每条记录
+    for record in data_dict.get('data', []):
+        extracted_data = {
+            'id': to_str(record['id']),
+            'campaignName': to_str(record['campaign']['name']),
+            'keyword': to_str(record['keyword']),
+            'state': to_str(record['state']),
+            'dailyBudget': to_str(record['campaign']['dailyBudget']),
+            'matchType': to_str(record['matchType']),
+            'SPEND': to_str(to_left5(record['performance']['SPEND'])),
+            'CPC': to_str(to_left5(record['performance']['CPC'])),
+            'ROAS': to_str(record['performance']['ROAS']),
+            'SALES': to_str(to_left5(record['performance']['SALES'])),
+            'CLICKS': to_str(record['performance']['CLICKS'])
+        }
+        extracted_list.append(extracted_data)
+
+    return extracted_list
