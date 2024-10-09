@@ -112,6 +112,7 @@ class FieldParam(BaseModel):
 # 定义请求体的Pydantic模型，如果请求体是JSON格式
 class Item(BaseModel):
     data: str  # 使用Any类型来接收任意类型的JSON数据
+    param: str
 
 class ArbitraryData(BaseModel):
     # 使用 Any 类型来表示这个字段可以接收任何类型的数据

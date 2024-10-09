@@ -13,6 +13,8 @@ import uvicorn
 import json
 import time
 import os
+import mysql.connector
+from datetime import datetime
 
 router = APIRouter(prefix="/router", tags=["远程"])
 
@@ -20,7 +22,7 @@ router = APIRouter(prefix="/router", tags=["远程"])
 @router.post("/save")
 async def post_data(item: request.Item):  # 使用 Pydantic 模型自动解析请求体
     # 打印接收到的数据
-    print('Received POST data:', item.data)
+    # print('Received POST data:', item.data)
 
     # 保存数据到本地文件
     # 使用当前时间戳创建文件名
@@ -30,13 +32,17 @@ async def post_data(item: request.Item):  # 使用 Pydantic 模型自动解析�
         # 因为 data 是字符串，我们可能需要先将其转换为字典，如果是JSON字符串的话
         try:
             data_dict = json.loads(item.data)
+            param_dict = json.loads(item.param)
+            regServiceNo = param_dict['regServiceNo']
+            print("regServiceNo", regServiceNo)
         except json.JSONDecodeError:
             data_dict = {"data": item.data}  # 如果不是有效的 JSON 字符串，则直接保存
         try:
             extracted_list = extract_data(data_dict)
-            print(extracted_list)
-        except:
-            print('extract_data fail')
+            insert_into_database(extracted_list)
+            # print(extracted_list)
+        except Exception as e:  # 捕获所有异常的基类
+            print(f'extract_data or insert_into_database fail，An error occurred: {e}')  # 打印异常信息
             pass
         json.dump(data_dict, f)
     # 返回成功响应
@@ -114,6 +120,9 @@ async def xxgk():
 def to_str(value):
     return f'{value}' if value is not None else 'null'
 
+def to_default_if_empty(value, default=0):
+    return value if value is not None and value != '' else default
+
 def to_left5(value):
     try:
         if value is not None:
@@ -144,14 +153,57 @@ def extract_data(data_dict):
             'campaignName': to_str(record['campaign']['name']),
             'keyword': to_str(record['keyword']),
             'state': to_str(record['state']),
-            'dailyBudget': to_str(record['campaign']['dailyBudget']),
+            'dailyBudget': to_default_if_empty(record['campaign']['dailyBudget']),
             'matchType': to_str(record['matchType']),
-            'SPEND': to_str(to_left5(record['performance']['SPEND'])),
-            'CPC': to_str(to_left5(record['performance']['CPC'])),
-            'ROAS': to_str(record['performance']['ROAS']),
-            'SALES': to_str(to_left5(record['performance']['SALES'])),
-            'CLICKS': to_str(record['performance']['CLICKS'])
+            'SPEND': to_default_if_empty(to_left5(record['performance']['SPEND'])),
+            'CPC': to_default_if_empty(to_left5(record['performance']['CPC'])),
+            'ROAS': to_default_if_empty(record['performance']['ROAS']),
+            'SALES': to_default_if_empty(to_left5(record['performance']['SALES'])),
+            'CLICKS': to_default_if_empty(record['performance']['CLICKS'])
         }
         extracted_list.append(extracted_data)
 
     return extracted_list
+
+def insert_into_database(extracted_data):
+    # 连接数据库
+    db_connection = mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='',
+        database='mydb'
+    )
+    cursor = db_connection.cursor()
+
+    # 构建插入SQL语句
+    insert_query = '''
+    INSERT INTO gg_daily (campaign_name, keyword, state, daily_budget, match_type,spend, CPC, ROAS, sales, clicks) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    '''
+
+    # 准备要插入的数据
+    current_date = datetime.now().date()  # 获取当前日期
+    for data in extracted_data:
+        values = (
+            data['campaignName'],
+            data['keyword'],
+            data['state'],
+            data['dailyBudget'],
+            data['matchType'],
+            data['SPEND'],
+            data['CPC'],
+            data['ROAS'],
+            data['SALES'],
+            data['CLICKS']
+        )
+
+        # 执行插入操作
+        try:
+            cursor.execute(insert_query, values)
+            db_connection.commit()
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            db_connection.rollback()
+
+    # 关闭游标和数据库连接
+    cursor.close()
+    db_connection.close()
