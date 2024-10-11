@@ -115,15 +115,23 @@ async def save_inventory(item: request.Item):
         ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         '''
 
+        # 添加这个辅助函数在文件的适当位置
+        def safe_int(value):
+            try:
+                return int(value) if value is not None else 0
+            except ValueError:
+                logger.warning(f"无法转换为整数: {value}")
+                return 0
+
         # 遍历 listings 数组
         for listing in data_dict['data']['listings']['listings']:
             sku = listing['id']['sku']
             fnsku = listing['id']['fnSku']
             asin = listing['id']['asin']
-            available = listing['inventory']['available']
-            unfulfillable = listing['inventory']['unfulfillable']
-            inbound = listing['inventory']['inbound']
-            reserved = listing['inventory']['reserved']
+            available = safe_int(listing['inventory'].get('available'))
+            unfulfillable = safe_int(listing['inventory'].get('unfulfillable'))
+            inbound = safe_int(listing['inventory'].get('inbound'))
+            reserved = safe_int(listing['inventory'].get('reserved'))
             state = listing['state']
             
             # 计算 quantity
@@ -579,3 +587,11 @@ def safe_float(value, divisor=1, decimal_places=2):
     except (ValueError, TypeError):
         logger.warning(f"无法转换为浮点数: {value}")
         return None
+
+# 添加这个辅助函数在文件的适当位置
+def safe_int(value):
+    try:
+        return int(value) if value is not None else 0
+    except ValueError:
+        logger.warning(f"无法转换为整数: {value}")
+        return 0
